@@ -44,11 +44,19 @@ def DelLayer(c,sk):
 	return (c1, c2/(c1**sk))
 
 #Homomorphic Multiplication
-def HMult(c,cc):
+def HMult(c,cc,p):
 	c1, c2 = c
 	cc1, cc2 = cc
-	return c1*cc1, c2*cc2
+	return (c1*cc1)%p, (c2*cc2)%p
 
+#Homomorphic OR
+def HOR(c,cc,pk,r,p,g):
+	r1,r2 = r
+	for i in range(r1):
+		c = HMult(c,c,p)
+	for i in range(r2):
+		cc = HMult(cc,cc,p)
+	return Rand(HMult(c,cc,p),pk,r1,g)
 
 
 
