@@ -37,7 +37,7 @@ class TopoHiding(object):
         """
         msgs = [ast.literal_eval(m) for m in msgs] if msgs is not None else None
         if i == 0:
-            return [str((self.hpkcr.enc(pk, self.hpkcr.embed_bit(self.bit)))) for (pk, _) in self.key_pairs[0]]
+            return [str((self.hpkcr.enc(pk, self.hpkcr.embed_msg(self.bit)), pk)) for (pk, _) in self.key_pairs[0]]
         elif i < self.n_rounds:
             perm = self.permutations[i-1]
             key_pairs = self.key_pairs[i]
@@ -47,27 +47,27 @@ class TopoHiding(object):
                 pk_1, sk_1 = key_pairs[dp]
                 k_1 = self.hpkcr.group(k, pk_1)
                 c_hat_1 = self.hpkcr.add_layer(c, sk_1)
-                bit_enc = self.hpkcr.enc(k_1, self.hpkcr.embed_bit(self.bit))
-                c_1 = self.hpkcr.hom_or(bit_enc, c_hat_1)
+                bit_enc = self.hpkcr.enc(k_1, self.hpkcr.embed_msg(self.bit))
+                c_1 = self.hpkcr.hom_or(bit_enc, c_hat_1, k_1)
                 out[dp] = str((c_1, k_1))
             return out
         elif i == self.n_rounds:
             out = []
             for d, (c, k) in enumerate(msgs):
-                bit_enc = self.hpkcr.enc(k_1, self.hpkcr.embed_bit(self.bit))
-                e = self.hpkcr.hom_or(c, bit_enc)
+                bit_enc = self.hpkcr.enc(k, self.hpkcr.embed_msg(self.bit))
+                e = self.hpkcr.hom_or(c, bit_enc, k)
                 out.append(str(e))
             return out
-        elif i < 2*self_n_rounds:
+        elif i < 2*self.n_rounds:
             perm = self.permutations[self.n_rounds - i]
             key_pairs = self.key_pairs[self.n_rounds - i]
             out = [None] * self.di
             for d, e in enumerate(msgs):
                 dp = perm.inverse(d)
                 e_1 = self.hpkcr.del_layer(e, key_pairs[dp][1])
-                out[dp] = e_1
-                out.append(str(e_1))
-            if i != 2*self_n_rounds - 1:
+                out[dp] = str(e_1)
+            if i != 2*self.n_rounds - 1:
                 return out
+            return out
         else:
             raise ValueError("i is out of bounds")
