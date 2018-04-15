@@ -66,12 +66,12 @@ for index in range(len(args.nodes)):
 	connection, address = serversocket.accept()
 	client_name = receive_string(connection)
 	transmit_string(connection, args.id)
-	rx_sockets{client_name} = connection
+	rx_sockets[client_name] = connection
 
 #check for replies and restablish tx_socket / name mapping
 for tx_socket in tx_sockets_tmp:
 	client_name = receive_string(tx_socket)
-	tx_sockets{client_name} = tx_socket
+	tx_sockets[client_name] = tx_socket
 
 node_names = rx_sockets.keys()
 
@@ -85,11 +85,11 @@ rx_messages = ['']*len(tx_messages)
 for round_number in range(1,topo.n_rounds*2):
 	#send message to tx_sockets
 	for index in len(node_names):
-		transmit_string(tx_sockets{node_names[index]}, tx_messages[index])
+		transmit_string(tx_sockets[node_names[index]], tx_messages[index])
 
 	#receive message from rx_sockets
 	for index in len(node_names):
-		rx_messages[index] = receive_string(rx_sockets{node_names[index]})
+		rx_messages[index] = receive_string(rx_sockets[node_names[index]])
 
 	#compute next round 
 	tx_messages = do_round(round_number, rx_messages)
