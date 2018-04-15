@@ -16,14 +16,14 @@ def modinv(a, m):
         return x % m
 
 class HPKCR(object):
-	def __init__(self,g,p,q):
-		self.g = g
-		self.p = p
-		self.q = q
+	def __init__(self,g,q):
+		self.g = g        # Generator of group 
+		self.p = 2*q+1    # 2*q + 1 is a prime
+		self.q = q        # q is a prime
 
 	#Generate a key given randomness 
 	def key_gen(self):
-		x = random.randint(1,self.q-1)
+		x = random.randint(1,2*self.q)
 		sk = x
 		pk = pow(self.g,x,self.p)
 		return (pk,sk)
@@ -32,7 +32,7 @@ class HPKCR(object):
 	def enc(self,m,pk):
 		if m < 0 or m > 1:
 			return "Invalid message"
-		y = random.randint(1,self.q-1)
+		y = random.randint(1,2*self.q)
 		s = pow(pk,y,self.p)
 		m =  pow(self.g,m,self.p) 
 		c1 = pow(self.g,y,self.p)
@@ -50,7 +50,8 @@ class HPKCR(object):
 			return 0
 
 	#Randomization function for ElGamal 
-	def rand(self,c,pk,r):
+	def rand(self,c,pk):
+		r = random.randint(1,2*self.q-1)
 		c1,c2 = c
 		return c1*(pow(self.g,r,self.p)) % self.p, pow(pk,r,self.p)*c2 % self.p
 
@@ -71,8 +72,9 @@ class HPKCR(object):
 		return (c1*cc1)%self.p, (c2*cc2)%self.p
 
 	#Homomorphic OR
-	def hom_or(self,c,cc,pk,r):
-		r1,r2 = r
+	def hom_or(self,c,cc,pk):
+		r1 = random.randint(1,2*self.q-1)
+		r2 = random.randint(1,2*self.q-1)
 		for i in range(r1):
 			c = self.hmult(c,c)
 		for i in range(r2):
