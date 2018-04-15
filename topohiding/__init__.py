@@ -24,10 +24,10 @@ class Permutation(object):
 class TopoHiding(object):
     def __init__(self, hpkcr, kappa, n, di, bit):
         self.hpkcr = hpkcr
-        self.di
+        self.di = di
         self.bit = bit
         self.n_rounds = 8 * kappa * n^3
-        self.key_pairs = [[hpkcr.key_gen() for _ in range(d)] for _ in range(self.n_rounds)]
+        self.key_pairs = [[hpkcr.key_gen() for _ in range(self.di)] for _ in range(self.n_rounds)]
         self.permutations = [Permutation.gen(self.di) for _ in range(self.n_rounds - 1)]
 
     def do_round(self, i, msgs):
@@ -41,7 +41,7 @@ class TopoHiding(object):
             key_pairs = self.key_pairs[i]
             out = [None] * self.di
             for d, (c, k) in enumerate(msgs):
-                dp = perm[d]
+                dp = perm.forward(d)
                 pk_1, sk_1 = key_pairs[dp]
                 k_1 = self.hpkcr.group(k, pk_1)
                 c_hat_1 = self.hpkcr.add_layer(c, sk_1)
@@ -55,4 +55,17 @@ class TopoHiding(object):
                 bit_enc = self.hpkcr.enc(k_1, self.hpkcr.embed_bit(self.bit))
                 e = self.hpkcr.hom_or(c, bit_enc)
                 out.append(e)
-        return ["hello world"]*self.public_keys
+            return out
+        elif i < 2*self_n_rounds:
+            perm = self.permutations[self.n_rounds - i]
+            key_pairs = self.key_pairs[self.n_rounds - i]
+            out = [None] * self.di
+            for d, e in enumerate(msgs):
+                dp = perm.inverse(d)
+                e_1 = self.hpkcr.del_layer(e, key_pairs[dp][1])
+                out[dp] = e_1
+                out.append(e_1)
+            if i != 2*self_n_rounds - 1:
+                return out
+        else:
+            raise ValueError("i is out of bounds")
