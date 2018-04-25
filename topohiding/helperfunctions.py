@@ -1,6 +1,5 @@
 import random
 
-
 def egcd(a, b):
     if a == 0:
         return (b, 0, 1)
@@ -41,7 +40,6 @@ class HPKCR(object):
     def enc(self,m,pk):
         y = random.randint(1,2*self.q)
         s = pow(pk,y,self.p)
-        m =  pow(self.g,m,self.p)
         c1 = pow(self.g,y,self.p)
         c2 = (m*s) % self.p
         return (c1, c2)
@@ -86,7 +84,11 @@ class HPKCR(object):
         return self.rand(self.hmult(c,cc),pk)
 
     def embed_msg(self, m):
-        return pow(self.g, m, self.p)
+        assert m < self.p - 1
+        return m + 1
+
+    def unembed_msg(self, m):
+        return (m - 1) % self.p
 
 def testLayers(obj,c,sk):
     a = obj.add_layer(c,sk)
