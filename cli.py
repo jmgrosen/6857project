@@ -13,7 +13,7 @@ def receive_exact(s, n):
 def receive_string(s):
 	size = receive_exact(s, 4)
 	size = struct.unpack("I", size)[0]
-	res = receive_exact(s,size)
+	res = receive_exact(s,size).decode("utf-8") 
 	return res
 
 def transmit_string(s, str_tx):
