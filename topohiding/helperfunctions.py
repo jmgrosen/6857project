@@ -1,4 +1,5 @@
 import random
+import itertools
 
 def egcd(a, b):
     if a == 0:
@@ -98,3 +99,49 @@ def testLayers(obj,c,sk):
 def testEnc(obj,m):
     pk,sk = obj.key_gen()
     return m == obj.dec(obj.enc(m,pk),sk)
+
+class FakeHPKCR(object):
+    def __init__(self):
+        self.ctr = itertools.count()
+
+    #Generate a key given randomness
+    def key_gen(self):
+        keynum = next(self.ctr)
+        return (f"PK({keynum})", f"SK({keynum})")
+
+    def group(self, a, b):
+        return f"Group({a}, {b})"
+
+    #Encrypt a mesage with the given public key and randomness.
+    def enc(self,m,pk):
+        return f"Enc({m}, {pk})"
+
+    #Decrypt a message with the given secret key.
+    def dec(self,c,sk):
+        return f"Dec({c}, {sk})"
+
+    #Randomization function for ElGamal
+    def rand(self,c,pk):
+        return f"Rand({c}, {pk})"
+
+    #Adding Layers
+    def add_layer(self,c,sk):
+        return f"AddLayer({c}, {sk})"
+
+    #Removing Layers
+    def del_layer(self,c,sk):
+        return f"DelLayer({c}, {sk})"
+
+    #Homomorphic Multiplication
+    def hmult(self,c,cc):
+        return f"HMult({c}, {cc})"
+
+    #Homomorphic OR
+    def hom_or(self,c,cc,pk):
+        return f"HomOR({c}, {cc}, {pk})"
+
+    def embed_msg(self, m):
+        return f"Embed({m})"
+
+    def unembed_msg(self, m):
+        return f"Unembed({m})"
