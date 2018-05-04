@@ -1,9 +1,13 @@
 import argparse
 import socket
 import topohiding
-from topohiding.helperfunctions import HPKCR
-import struct 
+from topohiding.helperfunctions import FakeHPKCR, HPKCR, find_generator
+import struct
 
+# Test Commands: 
+# python3.6 cli.py -k 5 -v 1 -p 60002 -b 2 -i foo1 -n 127.0.0.1:60001
+# python3.6 cli.py -k 5 -v 1 -p 60001 -b 2 -i foo0 -n 127.0.0.1:60002 
+#
 def receive_exact(s, n):
 	res = s.recv(n)
 	while(len(res)<n):
@@ -17,8 +21,9 @@ def receive_string(s):
 	return res
 
 def transmit_string(s, str_tx):
-	size = struct.pack("I", len(str_tx))
-	s.send(size+"str_tx".encode('utf-8'))
+	tx_string = str_tx.encode('utf-8')
+	size = struct.pack("I", len(tx_string))
+	s.send(size+tx_string)
 
 
 #parse list of neighbors in IP:Port form, argument for OR opperation 
@@ -37,8 +42,7 @@ node_ports = []
 
 node_addr = []
 node_connections = []
-
-for node_info in args.nodes:
+for node_info in args.nodes[0]:
 	hostname,port = node_info.split(':')
 	node_hostnames.append(hostname)
 	node_ports.append(int(port))
@@ -47,7 +51,7 @@ for node_info in args.nodes:
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serversocket.bind(('0.0.0.0', args.port))
 serversocket.listen(len(args.nodes))
-
+print("Value: "+ str(args.value))
 input("Waiting for other clients to come online. Press any key to continue.")
 
 #create tx sockets 
@@ -73,28 +77,37 @@ for tx_socket in tx_sockets_tmp:
 	client_name = receive_string(tx_socket)
 	tx_sockets[client_name] = tx_socket
 
-node_names = rx_sockets.keys()
+node_names = list(rx_sockets.keys())
 
 #init topohiding class
-topo = topohiding.TopoHiding(None, args.kappa, args.bound, len(args.nodes), args.value)
+q = 1559
+g = 2597
+#g = find_generator(q)
+
+hpkcr = HPKCR(g, q)
+topo = topohiding.TopoHiding(hpkcr, args.kappa, args.bound, len(args.nodes), args.value)
 
 #do first round
 tx_messages = topo.do_round(0, None)
 rx_messages = ['']*len(tx_messages)
 
-for round_number in range(1,topo.n_rounds*2):
+
+for round_number in range(1, 2 * topo.n_rounds + 1):
+	print(round_number)
+
 	#send message to tx_sockets
-	for index in len(node_names):
+	for index in range(len(node_names)):
+		print(tx_messages[index])
 		transmit_string(tx_sockets[node_names[index]], tx_messages[index])
 
 	#receive message from rx_sockets
-	for index in len(node_names):
+	for index in range(len(node_names)):
 		rx_messages[index] = receive_string(rx_sockets[node_names[index]])
 
 	#compute next round 
-	tx_messages = do_round(round_number, rx_messages)
+	tx_messages = topo.do_round(round_number, rx_messages)
 
-print(tx_messages)
+print("FINAL ANSWER:", any(hpkcr.unembed_msg(x) for x in tx_messages))
 
 
 
