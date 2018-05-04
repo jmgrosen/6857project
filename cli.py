@@ -47,10 +47,14 @@ for node_info in args.nodes[0]:
 	node_hostnames.append(hostname)
 	node_ports.append(int(port))
 
+print(node_hostnames)
+print(node_ports)
+print(args.nodes)
+print(len(args.nodes[0]))
 #rx socket 
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serversocket.bind(('0.0.0.0', args.port))
-serversocket.listen(len(args.nodes))
+serversocket.listen(len(args.nodes[0]))
 print("Value: "+ str(args.value))
 input("Waiting for other clients to come online. Press any key to continue.")
 
@@ -58,7 +62,7 @@ input("Waiting for other clients to come online. Press any key to continue.")
 tx_sockets_tmp=[]
 rx_sockets={}
 tx_sockets={}
-for index in range(len(args.nodes)):
+for index in range(len(args.nodes[0])):
 	clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	clientsocket.connect((node_hostnames[index], node_ports[index]))
 	transmit_string(clientsocket, args.id)
@@ -66,7 +70,7 @@ for index in range(len(args.nodes)):
 
 
 #accept rx sockets and reply to name 
-for index in range(len(args.nodes)):
+for index in range(len(args.nodes[0])):
 	connection, address = serversocket.accept()
 	client_name = receive_string(connection)
 	transmit_string(connection, args.id)
@@ -85,13 +89,13 @@ g = 2597
 #g = find_generator(q)
 
 hpkcr = HPKCR(g, q)
-topo = topohiding.TopoHiding(hpkcr, args.kappa, args.bound, len(args.nodes), args.value)
+topo = topohiding.TopoHiding(hpkcr, args.kappa, args.bound, len(args.nodes[0]), args.value)
 
 #do first round
 tx_messages = topo.do_round(0, None)
 rx_messages = ['']*len(tx_messages)
 
-
+print(node_names)
 for round_number in range(1, 2 * topo.n_rounds + 1):
 	print(round_number)
 
