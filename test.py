@@ -39,13 +39,20 @@ def from_graph(g):
         return (i, TopoHiding(hpkcr, kappa, n, deg, bit))
     return networkx.relabel.relabel_nodes(g, transform_node)
 
+def n_to_list(d):
+    if d is None:
+        return None
+    return [x for (_, x) in sorted(d.items())]
+
+def list_to_n(g, i, l):
+    return []
+
 def run_graph(g):
     prev = {i: None for (i, _) in g.nodes()}
-    new = {i:  for (i, _) in g.nodes()}
+    new = {i: {j: None for j in g.neighbors(i)} for (i, _) in g.nodes()}
     for r in range(n_rounds(len(g), kappa)):
         for i, t in g.nodes():
             out = t.do_round(r, prev[i])
-            
 
 n = 2
 bit1 = 0
@@ -55,26 +62,27 @@ node2 = TopoHiding(hpkcr, kappa, n, 1, bit2)
 
 prev1 = node1.do_round(0, None)
 prev2 = node2.do_round(0, None)
-# print(prev1)
-# print(prev2)
-# print()
+print(prev1)
+print(prev2)
+print()
 
 for i in range(1, 2 * node1.n_rounds + 1):
-    # print(f"ROUND {i}:")
+    print(f"ROUND {i}:")
     # print()
 
-    # print("NODE 1:")
+    print("NODE 1:")
     cur1 = node1.do_round(i, prev2)
-    # print("OUT 1:", cur1)
+    print("OUT 1:", cur1)
     # print()
 
-    # print("NODE 2:")
+    print("NODE 2:")
     cur2 = node2.do_round(i, prev1)
-    # print("OUT 2:", cur2)
+    print("OUT 2:", cur2)
     # print()
 
     prev1, prev2 = cur1, cur2
 
+print()
 print("FINAL ANSWER FOR 1:", any(hpkcr.unembed_msg(x) for x in prev1))
 print("FINAL ANSWER FOR 2:", any(hpkcr.unembed_msg(x) for x in prev2))
 
