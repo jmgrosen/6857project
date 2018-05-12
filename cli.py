@@ -3,6 +3,8 @@ import socket
 import topohiding
 from topohiding.helperfunctions import FakeHPKCR, HPKCR, find_generator
 import struct
+import base64
+import os
 
 # Test Commands: 
 # python3.6 cli.py -k 5 -v 1 -p 60002 -b 2 -i foo1 -n 127.0.0.1:60001
@@ -30,7 +32,7 @@ def transmit_string(s, str_tx):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--nodes', nargs='*', action='append', type=str, required=True) 
-parser.add_argument('-i', '--id', type=str, required=True)
+parser.add_argument('-i', '--id', type=str, required=False, default=base64.b64encode(os.urandom(16)).decode('utf-8'))
 parser.add_argument('-b', '--bound', type=int, required=True) #upper bound on total number of neighbors 
 parser.add_argument('-p', '--port', type=int, required=True)
 parser.add_argument('-v', '--value', type=int, required=True)
@@ -53,6 +55,7 @@ print(args.nodes)
 print(len(args.nodes[0]))
 #rx socket 
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 serversocket.bind(('0.0.0.0', args.port))
 serversocket.listen(len(args.nodes[0]))
 print("Value: "+ str(args.value))
@@ -111,7 +114,7 @@ for round_number in range(1, 2 * topo.n_rounds + 1):
 	#compute next round 
 	tx_messages = topo.do_round(round_number, rx_messages)
 
-print("FINAL ANSWER:", any(hpkcr.unembed_msg(x) for x in tx_messages))
+print("FINAL ANSWER:", tx_messages)
 
 
 
