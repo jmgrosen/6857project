@@ -1,5 +1,6 @@
 from topohiding.helperfunctions import FakeHPKCR, HPKCR, find_generator
 from topohiding import TopoHiding
+import time
 import random
 import networkx
 import matplotlib.pyplot as plt
@@ -28,7 +29,7 @@ g = find_generator(q)
 hpkcr = HPKCR(g, q)
 # hpkcr = FakeHPKCR()
 
-kappa = 2
+kappa = 4
 
 def n_rounds(n, kappa):
     return 16 * kappa * n**3 + 1
@@ -38,7 +39,7 @@ def from_graph(g):
     n = len(g)
     g = g.copy()
     for i in g.nodes():
-        bit = g.node[i]['bit']
+        bit = g.node[i].get('bit', 0)
         deg = g.degree(i)
         # print(f"deg = {deg}")
         g.node[i]['th'] = TopoHiding(hpkcr, kappa, n, deg, bit)
@@ -71,15 +72,25 @@ def run_graph(g):
         new = {i: {j: None for j in g.neighbors(i)} for i in g.nodes()}
     return ret
 
-simple = networkx.Graph()
-simple.add_node(0, bit=1)
-simple.add_node(1, bit=1)
-simple.add_edge(0, 1)
-simple = from_graph(simple)
-print(run_graph(simple))
+import sys
+n = int(sys.argv[1])
+print("running a complete graph with " + str(n) + " nodes")
+print(str(n_rounds(n, kappa)) + " rounds")
+complete = from_graph(networkx.complete_graph(int(sys.argv[1])))
+t0 = time.time()
+print(run_graph(complete))
+t1 = time.time()
+print("took {} seconds".format(t1 - t0))
 
-test_graph = from_graph(test_graph)
-print(run_graph(test_graph))
+# simple = networkx.Graph()
+# simple.add_node(0, bit=1)
+# simple.add_node(1, bit=1)
+# simple.add_edge(0, 1)
+# simple = from_graph(simple)
+# print(run_graph(simple))
+
+# test_graph = from_graph(test_graph)
+# print(run_graph(test_graph))
 
 
 # n = 2
