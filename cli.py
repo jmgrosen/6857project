@@ -5,6 +5,7 @@ from topohiding.helperfunctions import FakeHPKCR, HPKCR, find_generator
 import struct
 import base64
 import os
+import time
 
 # Test Commands: 
 # python3.6 cli.py -k 5 -v 1 -p 60002 -b 2 -i foo1 -n 127.0.0.1:60001
@@ -27,6 +28,7 @@ def transmit_string(s, str_tx):
 	size = struct.pack("I", len(tx_string))
 	s.send(size+tx_string)
 
+start_time = time.time()
 
 #parse list of neighbors in IP:Port form, argument for OR opperation 
 
@@ -37,6 +39,7 @@ parser.add_argument('-b', '--bound', type=int, required=True) #upper bound on to
 parser.add_argument('-p', '--port', type=int, required=True)
 parser.add_argument('-v', '--value', type=int, required=True)
 parser.add_argument('-k', '--kappa', type=int, required=True) 
+parser.add_argument('-t', '--timer', action='store_true', default=False)
 args = parser.parse_args()
 
 node_hostnames = []
@@ -115,7 +118,8 @@ for round_number in range(1, 2 * topo.n_rounds + 1):
 	tx_messages = topo.do_round(round_number, rx_messages)
 
 print("FINAL ANSWER:", tx_messages)
-
+if(args.timer):
+	print("--- %s seconds ---" % (time.time() - start_time))
 
 
 
